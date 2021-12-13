@@ -13,23 +13,23 @@ IMAGE_VERSION="${IMAGE}:${IMAGE_TAG}"
 
 PSNAME=lightstep_developer_satellite
 
-STOP_CMD='  bash -c "$(curl -L https://raw.githubusercontent.com/lightstep/lightstep-developer-satellite/master/stop-developer-satellite.sh)"'
+STOP_CMD='  bash -c "$(curl -L https://raw.githubusercontent.com/barakplasma/lightstep-developer-satellite/master/stop-developer-satellite.sh)"'
 
-docker > /dev/null 2>&1
+nerdctl > /dev/null 2>&1
 if [ $? -ne 0 ]; then
   echo "This version of the LightStep Satellite requires docker.  Please install docker before proceeding."
   exit 1
 fi
 
-ID=$(docker ps --all | grep "${PSNAME}" | head -n 1 | cut -d ' ' -f 1 )
+ID=$(nerdctl ps --all | grep "${PSNAME}" | head -n 1 | cut -d ' ' -f 1 )
 if [ -n "$ID" ]; then
   echo "There is already a LightStep Satellite running.  Stopping it now."
   while true; do
-    ID=$(docker ps --all | grep "${PSNAME}" | head -n 1 | cut -d ' ' -f 1 )
+    ID=$(nerdctl ps --all | grep "${PSNAME}" | head -n 1 | cut -d ' ' -f 1 )
     if [ -n "$ID" ]; then
       echo "Removing docker container $ID"
-      docker kill "$ID" > /dev/null 2>&1 || true
-      docker rm "$ID" > /dev/null 2>&1 || true
+      nerdctl kill "$ID" > /dev/null 2>&1 || true
+      nerdctl rm "$ID" > /dev/null 2>&1 || true
     else
       break
     fi
@@ -93,7 +93,7 @@ COLLECTOR_FORWARDED_TAGS="developer_satellite:true"
 
 # Pull down the latest version of the satellite from docker hub
 # (Note, this does not happen automatically with docker run)
-docker pull ${IMAGE_VERSION}
+nerdctl pull ${IMAGE_VERSION}
 
 # These variables will pass through to the docker environment.
 VARS="
@@ -174,7 +174,7 @@ PARGS="
 
 # Lookup the host's IP address that can be used by other containers to reach
 # this satellite.
-docker_hostip=$(docker network inspect bridge --format '{{ (index .IPAM.Config 0).Gateway }}')
+docker_hostip=$(nerdctl network inspect bridge --format '{{ (index .IPAM.Config 0).Gateway }}')
 
 
 container=lightstep_developer_satellite
@@ -190,4 +190,4 @@ echo "when this machine reboots.  To stop this process, run:"
 echo "${STOP_CMD}"
 echo
 
-docker run -d ${DARGS} ${PARGS} --name ${container} --restart always ${IMAGE_VERSION}
+nerdctl run -d ${DARGS} ${PARGS} --name ${container} --restart always ${IMAGE_VERSION}
