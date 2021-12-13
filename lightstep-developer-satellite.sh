@@ -174,7 +174,7 @@ PARGS="
 
 # Lookup the host's IP address that can be used by other containers to reach
 # this satellite.
-docker_hostip=$(nerdctl network inspect bridge --format '{{ (index .IPAM.Config 0).Gateway }}')
+docker_hostip=$(nerdctl network inspect bridge | jq '.[0].IPAM.Config[0].Gateway')
 
 
 container=lightstep_developer_satellite
